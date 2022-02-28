@@ -140,27 +140,21 @@ unsigned long Bluetooth::findBaud()
         bt_serial.setTimeout(100);
         bt_serial.flush();
 
-        Serial.print("Trying baud: ");
-        Serial.println(baud);
-
-        bt_serial.flush();
-
         bt_serial.write("AT+VERSION\r\n");
         delay(10);
-        recvd = this->read(BUFFER, BUFFER_SIZE);
-        if (recvd > 0) {
-            Serial.println("Found.");
-            this->setCmdPin(LOW);
 
+        recvd = bt_serial.readBytes(BUFFER, BUFFER_SIZE);
+
+        if (recvd > 0) {
+            this->setCmdPin(LOW);
             return baud;
+
         } else {
             Serial.println("x");
         }
     }
 
     this->setCmdPin(LOW);
-    Serial.println("\r\nNo connection\r\n");
-
     return 0;
 }
 
@@ -219,11 +213,14 @@ size_t Bluetooth::read(char* buffer, int length)
 {
     char* __buffer = buffer;
 
-    char rc = NULL;
+    char rc      = NULL;
+    size_t index = 0;
 
-    while ((rc = this->serial->read()), rc != '\n') {
-        if (rc >= 0 && rc != '\r')
+    while ((rc = this->serial->read()), rc != '\n' && index < length) {
+        if (rc >= 0 && rc != '\r') {
             *__buffer++ = rc;
+            index++;
+        }
     }
 
     *__buffer = 0;
