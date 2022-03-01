@@ -6,6 +6,7 @@
 #include <string.h>
 
 
+#define OK_RESPONSE     "+OK"
 #define DEFAULT_TIMEOUT 5000
 #define BUFFER_SIZE     128
 
@@ -148,9 +149,6 @@ unsigned long Bluetooth::findBaud()
         if (recvd > 0) {
             this->setCmdPin(LOW);
             return baud;
-
-        } else {
-            Serial.println("x");
         }
     }
 
@@ -179,12 +177,12 @@ bool Bluetooth::handlNewConnection()
 {
     size_t recvd = 0;
 
-    recvd = this->read(BUFFER, BUFFER_SIZE);
+    recvd = this->readLine(BUFFER, BUFFER_SIZE);
 
     if (recvd != 30)
         return false;
 
-    /*
+    /**
      * Expects "+CONNECTING<<xx:xx:xx:xx:xx:xx"
      *          ^            ^
      *          0            13
@@ -199,7 +197,7 @@ bool Bluetooth::handlNewConnection()
     }
 
     // Flush "CONNECTED" response
-    recvd = this->read(BUFFER, BUFFER_SIZE);
+    recvd = this->readLine(BUFFER, BUFFER_SIZE);
 
     return true;
 };
@@ -268,7 +266,7 @@ void Bluetooth::sendCommand(char* cmd, uint32_t timeout)
     bt_serial.write("\r\n");
     bt_serial.setTimeout(timeout);
 
-    this->read(BUFFER, BUFFER_SIZE);
+    this->readLine(BUFFER, BUFFER_SIZE);
 
     this->setCmdPin(LOW);
 };
@@ -276,25 +274,25 @@ void Bluetooth::sendCommand(char* cmd, uint32_t timeout)
 void Bluetooth::getVersion(char* buffer, int length)
 {
     this->sendCommand("AT+VERSION", DEFAULT_TIMEOUT);
-    this->read(buffer, length);
+    this->readLine(buffer, length);
 }
 
 void Bluetooth::getBauds(char* buffer, int length)
 {
     this->sendCommand("AT+BAUD", DEFAULT_TIMEOUT);
-    this->read(buffer, length);
+    this->readLine(buffer, length);
 }
 
 void Bluetooth::getName(char* buffer, int length)
 {
     this->sendCommand("AT+NAME", DEFAULT_TIMEOUT);
-    this->read(buffer, length);
+    this->readLine(buffer, length);
 }
 
 void Bluetooth::getPin(char* buffer, int length)
 {
     this->sendCommand("AT+PIN", DEFAULT_TIMEOUT);
-    this->read(buffer, length);
+    this->readLine(buffer, length);
 }
 
 void Bluetooth::setName(char* name)
@@ -303,10 +301,14 @@ void Bluetooth::setName(char* name)
     strncat(BUFFER, name, BUFFER_SIZE);
 
     this->sendCommand(BUFFER, 1000);
-    this->read(BUFFER, BUFFER_SIZE);
+    this->readLine(BUFFER, BUFFER_SIZE);
 
-    this->reset();
-    this->read(BUFFER, BUFFER_SIZE);
+    Serial.print("SetName buffer: ");
+    Serial.println(BUFFER);
+    if (strcmp(BUFFER, OK_RESPONSE) == 0) {
+        this->reset();
+        this->readLine(BUFFER, BUFFER_SIZE);
+    }
 }
 
 void Bluetooth::setPin(char* pin)
@@ -315,7 +317,7 @@ void Bluetooth::setPin(char* pin)
     strncat(BUFFER, pin, BUFFER_SIZE);
 
     this->sendCommand(BUFFER, DEFAULT_TIMEOUT);
-    this->read(BUFFER, BUFFER_SIZE);
+    this->readLine(BUFFER, BUFFER_SIZE);
 
     this->reset();
 }
@@ -323,7 +325,7 @@ void Bluetooth::setPin(char* pin)
 void Bluetooth::reset()
 {
     this->sendCommand("AT+RESET", DEFAULT_TIMEOUT);
-    this->read(BUFFER, BUFFER_SIZE);
+    this->readLine(BUFFER, BUFFER_SIZE);
 
     delay(100);
 }
@@ -331,11 +333,11 @@ void Bluetooth::reset()
 void Bluetooth::resetFactory()
 {
     this->sendCommand("AT+DEFAULT", DEFAULT_TIMEOUT);
-    this->read(BUFFER, BUFFER_SIZE);
+    this->readLine(BUFFER, BUFFER_SIZE);
 }
 
 void Bluetooth::disconnect()
 {
     this->sendCommand("AT+DISC", DEFAULT_TIMEOUT);
-    this->read(BUFFER, BUFFER_SIZE);
+    this->readLine(BUFFER, BUFFER_SIZE);
 }
