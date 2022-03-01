@@ -183,7 +183,7 @@ bool Bluetooth::handlNewConnection()
 
     recvd = this->readLine(BUFFER, BUFFER_SIZE);
 
-    if (recvd != 30)
+    if (recvd < 30)
         return false;
 
     /**
@@ -210,28 +210,18 @@ int Bluetooth::available()
     return this->serial->available();
 }
 
-size_t Bluetooth::read(char* buffer, int length)
+char Bluetooth::read()
 {
-    char* __buffer = buffer;
-
-    char rc      = NULL;
-    size_t index = 0;
-
-    while ((rc = this->serial->read()), rc != '\n' && index < length) {
-        if (rc >= 0 && rc != '\r') {
-            *__buffer++ = rc;
-            index++;
-        }
-    }
-
-    *__buffer = 0;
-
-    return (size_t)(__buffer - buffer);
+    return this->serial->read();
 };
 
 int Bluetooth::readLine(char* buffer, int length)
 {
-    return this->serial->readBytesUntil('\n', buffer, length);
+    int recvd = this->serial->readBytesUntil('\n', buffer, length);
+    if (recvd < length)
+        buffer[recvd] = 0;
+
+    return recvd;
 };
 
 void Bluetooth::flush()
@@ -269,8 +259,6 @@ void Bluetooth::sendCommand(char* cmd, uint32_t timeout)
     bt_serial.write("\r\n");
     bt_serial.setTimeout(timeout);
 
-    this->readLine(BUFFER, BUFFER_SIZE);
-
     this->setCmdPin(LOW);
 };
 
@@ -298,7 +286,7 @@ void Bluetooth::getPin(char* buffer, int length)
     this->readLine(buffer, length);
 }
 
-void Bluetooth::setName(char* name)
+bool Bluetooth::setName(char* name)
 {
     strncpy(BUFFER, "AT+NAME", BUFFER_SIZE);
     strncat(BUFFER, name, BUFFER_SIZE);
@@ -308,13 +296,15 @@ void Bluetooth::setName(char* name)
 
     Serial.print("SetName buffer: ");
     Serial.println(BUFFER);
-    if (strcmp(BUFFER, OK_RESPONSE) == 0) {
-        this->reset();
-        this->readLine(BUFFER, BUFFER_SIZE);
-    }
+
+    if (strcmp(BUFFER, OK_RESPONSE) != 0)
+        return false;
+
+    this->reset();
+    return true;
 }
 
-void Bluetooth::setPin(char* pin)
+bool Bluetooth::setPin(char* pin)
 {
     strncpy(BUFFER, "AT+PIN", BUFFER_SIZE);
     strncat(BUFFER, pin, BUFFER_SIZE);
@@ -322,7 +312,14 @@ void Bluetooth::setPin(char* pin)
     this->sendCommand(BUFFER, DEFAULT_TIMEOUT);
     this->readLine(BUFFER, BUFFER_SIZE);
 
+    Serial.print("SetPin buffer: ");
+    Serial.println(BUFFER);
+
+    if (strcmp(BUFFER, OK_RESPONSE) != 0)
+        return false;
+
     this->reset();
+    return true;
 }
 
 void Bluetooth::reset()

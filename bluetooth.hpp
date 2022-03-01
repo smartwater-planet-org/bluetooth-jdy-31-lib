@@ -36,7 +36,7 @@ class Bluetooth
 
 
         int available();
-        size_t read(char* buffer, int length);
+        char read();
         int readLine(char* buffer, int length);
         void flush();
         void sendCommand(char* cmd, uint32_t timeout);
@@ -47,8 +47,8 @@ class Bluetooth
         void getName(char* buffer, int length);
         void getPin(char* buffer, int length);
 
-        void setName(char* name);
-        void setPin(char* pin);
+        bool setName(char* name);
+        bool setPin(char* pin);
 
         void reset();
         void resetFactory();
