@@ -6,7 +6,7 @@ enum Command {
     NAME,
 };
 
-class Bluetooth
+class Bluetooth : public SoftwareSerial
 {
     public:
         int rx;
@@ -17,15 +17,11 @@ class Bluetooth
 
         uint8_t client_mac[6] = { 0 };
 
-        SoftwareSerial* serial;
-
-        Bluetooth(int rx, int tx, int cmd_pin, int state_pin, int power_pin = -1);
+        Bluetooth(int rx, int tx, int cmd_pin, int state_pin, int power_pin = -1) : SoftwareSerial(rx, tx);
 
         void powerOn();
         void powerOff();
 
-        void begin(long baud);
-        void end();
         void setBaud(long baud, uint32_t stop_bits, uint32_t parity);
         void setBaud(long baud);
         unsigned long findBaud();
@@ -34,11 +30,7 @@ class Bluetooth
         void printClientMAC(bool new_line = false);
         bool handlNewConnection();
 
-
-        int available();
-        char read();
         int readLine(char* buffer, int length);
-        void flush();
         void sendCommand(char* cmd, uint32_t timeout);
 
         // void getName();

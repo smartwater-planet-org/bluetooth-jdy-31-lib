@@ -39,7 +39,7 @@ uint8_t parse_hex_nibble(char hex)
  *  - power_pin: ID of the pin used to control if the hc05 module gets any power.
  *               The implementation of this pin is most probably not built in.
  */
-Bluetooth::Bluetooth(int rx, int tx, int cmd_pin, int state_pin, int power_pin = -1)
+Bluetooth::Bluetooth(int rx, int tx, int cmd_pin, int state_pin, int power_pin = -1) : SoftwareSerial(rx, tx)
 {
     this->rx        = rx;
     this->tx        = tx;
@@ -53,8 +53,6 @@ Bluetooth::Bluetooth(int rx, int tx, int cmd_pin, int state_pin, int power_pin =
 
     if (power_pin >= 0)
         pinMode(power_pin, OUTPUT);
-
-    this->serial = new SoftwareSerial(rx, tx);
 };
 
 /**
@@ -79,39 +77,27 @@ void Bluetooth::powerOff()
         digitalWrite(this->power_pin, LOW);
 }
 
-void Bluetooth::begin(long baud)
-{
-    this->serial->begin(baud);
-}
-
-void Bluetooth::end()
-{
-    this->serial->end();
-}
-
 void Bluetooth::setBaud(long baud, uint32_t stop_bits, uint32_t parity)
 {
     this->setCmdPin(HIGH);
 
-    SoftwareSerial& bt_serial = *this->serial;
+    this->write("AT+UART=");
+    this->print(baud);
+    this->print(",");
+    this->print(stop_bits);
+    this->print(",");
+    this->print(parity);
 
-    bt_serial.write("AT+UART=");
-    bt_serial.print(baud);
-    bt_serial.print(",");
-    bt_serial.print(stop_bits);
-    bt_serial.print(",");
-    bt_serial.print(parity);
+    this->write("\r\n");
 
-    bt_serial.write("\r\n");
-
-    size_t recvd  = bt_serial.readBytes(BUFFER, BUFFER_SIZE);
+    size_t recvd  = this->readBytes(BUFFER, BUFFER_SIZE);
     BUFFER[recvd] = 0;
     Serial.print("Set baud response: ");
     Serial.println(BUFFER);
 
 
     digitalWrite(this->cmd_pin, LOW);
-    bt_serial.begin(baud);
+    this->begin(baud);
     delay(1000);
 };
 
@@ -131,24 +117,22 @@ unsigned long Bluetooth::findBaud()
 
     this->setCmdPin(HIGH);
 
-    auto& bt_serial = *this->serial;
-
     for (int rn = numRates - 1; rn >= 0; rn--) {
 
         const long baud = rates[rn];
 
-        bt_serial.begin(baud);
-        bt_serial.setTimeout(100);
-        bt_serial.flush();
+        this->begin(baud);
+        this->setTimeout(100);
+        this->flush();
 
         /**
          * From the specs, the jdy-31 has no "AT" command.
          * Use "AT+VERSION" as a replacement
          */
-        bt_serial.write("AT+VERSION\r\n");
+        this->write("AT+VERSION\r\n");
         delay(10);
 
-        recvd = bt_serial.readBytes(BUFFER, BUFFER_SIZE);
+        recvd = this->readBytes(BUFFER, BUFFER_SIZE);
 
         if (recvd > 0) {
             this->setCmdPin(LOW);
@@ -205,29 +189,14 @@ bool Bluetooth::handlNewConnection()
     return true;
 };
 
-int Bluetooth::available()
-{
-    return this->serial->available();
-}
-
-char Bluetooth::read()
-{
-    return this->serial->read();
-};
-
 int Bluetooth::readLine(char* buffer, int length)
 {
-    int recvd = this->serial->readBytesUntil('\n', buffer, length);
+    int recvd = this->readBytesUntil('\n', buffer, length);
     if (recvd < length)
         buffer[recvd] = 0;
 
     return recvd;
 };
-
-void Bluetooth::flush()
-{
-    this->serial->flush();
-}
 
 /**
  * Sets command pin state and waits to enter/exit command mode
@@ -253,11 +222,9 @@ void Bluetooth::sendCommand(char* cmd, uint32_t timeout)
     int recvd = 0;
     this->setCmdPin(HIGH);
 
-    SoftwareSerial& bt_serial = *this->serial;
-
-    bt_serial.write(cmd);
-    bt_serial.write("\r\n");
-    bt_serial.setTimeout(timeout);
+    this->write(cmd);
+    this->write("\r\n");
+    this->setTimeout(timeout);
 
     this->setCmdPin(LOW);
 };
