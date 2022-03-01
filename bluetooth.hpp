@@ -1,3 +1,6 @@
+#ifndef BT_JDY_31_LIB
+#define BT_JDY_31_LIB
+
 #include <SoftwareSerial.h> // Librería para la comunicación Bluetooth
 
 // SoftwareSerial BT(4, 6);    // Pines Tx y Rx del módulo Bluetooth, respectivamente
@@ -49,3 +52,5 @@ class Bluetooth : public SoftwareSerial
     private:
         void setCmdPin(int state);
 };
+
+#endif
