@@ -36,7 +36,7 @@ uint8_t parse_hex_nibble(char hex)
 }
 
 /**
- *  - power_pin: ID of the pin used to control if the hc05module gets any power.
+ *  - power_pin: ID of the pin used to control if the hc05 module gets any power.
  *               The implementation of this pin is most probably not built in.
  */
 Bluetooth::Bluetooth(int rx, int tx, int cmd_pin, int state_pin, int power_pin = -1)
@@ -141,6 +141,10 @@ unsigned long Bluetooth::findBaud()
         bt_serial.setTimeout(100);
         bt_serial.flush();
 
+        /**
+         * From the specs, the jdy-31 has no "AT" command.
+         * Use "AT+VERSION" as a replacement
+         */
         bt_serial.write("AT+VERSION\r\n");
         delay(10);
 
@@ -187,7 +191,6 @@ bool Bluetooth::handlNewConnection()
      *          ^            ^
      *          0            13
      */
-
     uint8_t byte_index = 0;
     for (int i = 13; i < 30; i += 3) {
         this->client_mac[byte_index] = parse_hex_nibble(BUFFER[i]) << 4;
@@ -253,7 +256,7 @@ void Bluetooth::setCmdPin(int state)
 
 /**
  * Send command without waiting for the response.
- * User must read or flush the buffer before and after calling this method.
+ * ! User must read or flush the buffer before and after calling this method.
  */
 void Bluetooth::sendCommand(char* cmd, uint32_t timeout)
 {
@@ -327,6 +330,7 @@ void Bluetooth::reset()
     this->sendCommand("AT+RESET", DEFAULT_TIMEOUT);
     this->readLine(BUFFER, BUFFER_SIZE);
 
+    // Wait an arbitraty time
     delay(100);
 }
 
@@ -334,6 +338,9 @@ void Bluetooth::resetFactory()
 {
     this->sendCommand("AT+DEFAULT", DEFAULT_TIMEOUT);
     this->readLine(BUFFER, BUFFER_SIZE);
+
+    // Wait an arbitraty time
+    delay(100);
 }
 
 void Bluetooth::disconnect()
