@@ -20,7 +20,7 @@ class Bluetooth : public SoftwareSerial
 
         uint8_t client_mac[6] = { 0 };
 
-        Bluetooth(int rx, int tx, int cmd_pin, int state_pin, int power_pin = -1) : SoftwareSerial(rx, tx);
+        Bluetooth(int rx, int tx, int cmd_pin, int state_pin, int power_pin = -1);
 
         void powerOn();
         void powerOff();
