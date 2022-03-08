@@ -1,10 +1,12 @@
 #include "bluetooth.hpp"
 
 #include <Arduino.h>
-#include <SoftwareSerial.h>
 #include <stdint.h>
 #include <string.h>
 
+#if __has_include(<SoftwareSerial.h>)
+#include <SoftwareSerial.h>
+#endif
 
 #define OK_RESPONSE     "+OK"
 #define DEFAULT_TIMEOUT 5000
@@ -39,7 +41,8 @@ uint8_t parse_hex_nibble(char hex)
  *  - power_pin: ID of the pin used to control if the hc05 module gets any power.
  *               The implementation of this pin is most probably not built in.
  */
-Bluetooth::Bluetooth(int rx, int tx, int cmd_pin, int state_pin, int power_pin = -1) : SoftwareSerial(rx, tx)
+#ifdef SoftwareSerial_h
+Bluetooth::Bluetooth(int rx, int tx, int cmd_pin, int state_pin, int power_pin) : SoftwareSerial(rx, tx)
 {
     this->rx        = rx;
     this->tx        = tx;
@@ -54,6 +57,27 @@ Bluetooth::Bluetooth(int rx, int tx, int cmd_pin, int state_pin, int power_pin =
     if (power_pin >= 0)
         pinMode(power_pin, OUTPUT);
 };
+#endif
+
+#ifndef SoftwareSerial_h
+Bluetooth::Bluetooth(Uart* serial, int cmd_pin, int state_pin, int power_pin)
+{
+    this->serial    = serial;
+    this->rx        = rx;
+    this->tx        = tx;
+    this->cmd_pin   = cmd_pin;
+    this->state_pin = state_pin;
+    this->power_pin = power_pin;
+
+
+    pinMode(cmd_pin, OUTPUT);
+    pinMode(state_pin, INPUT_PULLUP);
+
+    if (power_pin >= 0)
+        pinMode(power_pin, OUTPUT);
+};
+#endif
+
 
 /**
  *
@@ -149,7 +173,7 @@ bool Bluetooth::isConnected()
     return (digitalRead(this->state_pin) ? true : false);
 };
 
-void Bluetooth::printClientMAC(bool new_line = false)
+void Bluetooth::printClientMAC(bool new_line)
 {
     for (int i = 0; i < 5; i++) {
         Serial.print(this->client_mac[i], HEX);
@@ -189,6 +213,8 @@ bool Bluetooth::handlNewConnection()
     return true;
 };
 
+#ifdef SoftwareSerial_h
+
 int Bluetooth::readLine(char* buffer, int length)
 {
     int recvd = this->readBytesUntil('\n', buffer, length);
@@ -197,6 +223,7 @@ int Bluetooth::readLine(char* buffer, int length)
 
     return recvd;
 };
+#endif
 
 /**
  * Sets command pin state and waits to enter/exit command mode
@@ -312,3 +339,66 @@ void Bluetooth::disconnect()
     this->sendCommand("AT+DISC", DEFAULT_TIMEOUT);
     this->readLine(BUFFER, BUFFER_SIZE);
 }
+
+#ifndef SofwareSerial_H
+void Bluetooth::flush()
+{
+    this->serial->flush();
+};
+
+int Bluetooth::read()
+{
+    return this->serial->read();
+};
+
+int Bluetooth::readLine(char* buffer, int length)
+{
+    int recvd = this->serial->readBytesUntil('\n', buffer, length);
+    if (recvd < length)
+        buffer[recvd] = 0;
+
+    return recvd;
+};
+
+void Bluetooth::begin(unsigned long baudRate)
+{
+    this->serial->begin(baudRate);
+}
+
+void Bluetooth::begin(unsigned long baudrate, uint16_t config)
+{
+    this->serial->begin(baudrate, config);
+}
+
+void Bluetooth::end()
+{
+    this->serial->end();
+}
+
+int Bluetooth::available()
+{
+    return this->serial->available();
+}
+
+int Bluetooth::availableForWrite()
+{
+    return this->serial->availableForWrite();
+}
+
+int Bluetooth::peek()
+{
+    return this->serial->peek();
+}
+
+void Bluetooth::setTimeout(long timeout)
+{
+    this->serial->setTimeout(timeout);
+}
+
+size_t Bluetooth::readBytes(char* buffer, size_t length)
+{
+    this->serial->readBytes(buffer, length);
+}
+
+
+#endif
