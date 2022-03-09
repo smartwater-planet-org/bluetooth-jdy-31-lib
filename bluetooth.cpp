@@ -340,6 +340,11 @@ void Bluetooth::disconnect()
     this->readLine(BUFFER, BUFFER_SIZE);
 }
 
+/**
+ * Define all methods that would be provided by SoftwareSerial,
+ * bind methods to this->serial
+ */
+
 #ifndef SofwareSerial_H
 void Bluetooth::flush()
 {
