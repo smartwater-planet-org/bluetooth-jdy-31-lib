@@ -55,7 +55,7 @@ class Bluetooth : public SoftwareSerial
 #endif
 
 #ifndef SoftwareSerial_h
-class Bluetooth
+class Bluetooth : Stream
 {
     public:
         Uart* serial;
