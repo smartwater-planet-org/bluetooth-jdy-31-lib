@@ -55,7 +55,7 @@ class Bluetooth : public SoftwareSerial
 #endif
 
 #ifndef SoftwareSerial_h
-class Bluetooth : Stream
+class Bluetooth : public Stream
 {
     public:
         Uart* serial;
@@ -104,26 +104,23 @@ class Bluetooth : Stream
         int peek();
         int read();
         void flush();
+        size_t readBytesUntil(char terminator, char* buffer, size_t length);
         size_t readBytes(char* buffer, size_t length);
         void setTimeout(long timeout);
 
-        template <typename T>
-        size_t write(T value)
+        size_t write(uint8_t value)
         {
             return this->serial->write(value);
         }
 
-        template <typename T>
-        size_t print(T value)
+        size_t write(char* value, size_t length)
         {
-            return this->serial->print(value);
+            return this->serial->write(value, length);
         }
 
-        template <typename T>
-        size_t println(T value)
-        {
-            return this->serial->println(value);
-        }
+        using Print::print;
+        using Print::println;
+        using Print::write;
 
 
     private:

@@ -60,7 +60,7 @@ Bluetooth::Bluetooth(int rx, int tx, int cmd_pin, int state_pin, int power_pin) 
 #endif
 
 #ifndef SoftwareSerial_h
-Bluetooth::Bluetooth(Uart* serial, int cmd_pin, int state_pin, int power_pin)
+Bluetooth::Bluetooth(Uart* serial, int cmd_pin, int state_pin, int power_pin) : Stream()
 {
     this->serial    = serial;
     this->rx        = rx;
@@ -213,8 +213,6 @@ bool Bluetooth::handlNewConnection()
     return true;
 };
 
-#ifdef SoftwareSerial_h
-
 int Bluetooth::readLine(char* buffer, int length)
 {
     int recvd = this->readBytesUntil('\n', buffer, length);
@@ -223,7 +221,6 @@ int Bluetooth::readLine(char* buffer, int length)
 
     return recvd;
 };
-#endif
 
 /**
  * Sets command pin state and waits to enter/exit command mode
@@ -356,13 +353,9 @@ int Bluetooth::read()
     return this->serial->read();
 };
 
-int Bluetooth::readLine(char* buffer, int length)
+size_t Bluetooth::readBytesUntil(char terminator, char* buffer, size_t length)
 {
-    int recvd = this->serial->readBytesUntil('\n', buffer, length);
-    if (recvd < length)
-        buffer[recvd] = 0;
-
-    return recvd;
+    return this->serial->readBytesUntil(terminator, buffer, length);
 };
 
 void Bluetooth::begin(unsigned long baudRate)
@@ -402,7 +395,7 @@ void Bluetooth::setTimeout(long timeout)
 
 size_t Bluetooth::readBytes(char* buffer, size_t length)
 {
-    this->serial->readBytes(buffer, length);
+    return this->serial->readBytes(buffer, length);
 }
 
 
