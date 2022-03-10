@@ -9,7 +9,7 @@
 #endif
 
 
-class BT_Base
+class BT_Base : public Print
 {
     public:
         virtual ~BT_Base() {}
@@ -27,6 +27,8 @@ class BT_Base
         virtual int peek() = 0;
 
         virtual int read() = 0;
+
+        virtual size_t write(uint8_t) = 0;
 
         virtual void flush() = 0;
 
@@ -83,6 +85,11 @@ class BT_Wrapper : public BT_Base
             return m_impl->read();
         };
 
+        virtual size_t write(uint8_t v)
+        {
+            return m_impl->write(v);
+        };
+
         virtual void flush()
         {
             m_impl->flush();
@@ -100,11 +107,12 @@ class BT_Wrapper : public BT_Base
 
         virtual void setTimeout(long timeout)
         {
-            m_impl->setTimeout(long timeout);
+            m_impl->setTimeout(timeout);
         };
 
-    private:
-        C* m_impl;
+        using Print::print;
+        using Print::println;
+        using Print::write;
 };
 
 #ifdef SoftwareSerial_h

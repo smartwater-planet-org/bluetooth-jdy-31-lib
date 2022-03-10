@@ -60,7 +60,7 @@ Bluetooth::Bluetooth(int rx, int tx, int cmd_pin, int state_pin, int power_pin) 
 #endif
 
 #ifndef SoftwareSerial_h
-Bluetooth::Bluetooth(Uart* serial, int cmd_pin, int state_pin, int power_pin) : Serial_()
+Bluetooth::Bluetooth(Uart* serial, int cmd_pin, int state_pin, int power_pin) : Stream()
 {
     this->serial    = serial;
     this->rx        = rx;
