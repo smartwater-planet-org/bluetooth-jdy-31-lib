@@ -9,7 +9,7 @@
 #endif
 
 
-class BT_Base : public Print
+class BT_Base : public Stream
 {
     public:
         virtual ~BT_Base() {}
@@ -28,8 +28,6 @@ class BT_Base : public Print
 
         virtual int read() = 0;
 
-        virtual size_t write(uint8_t) = 0;
-
         virtual void flush() = 0;
 
         virtual size_t readBytesUntil(char terminator, char* buffer, size_t length) = 0;
@@ -37,6 +35,39 @@ class BT_Base : public Print
         virtual size_t readBytes(char* buffer, size_t length) = 0;
 
         virtual void setTimeout(long timeout) = 0;
+
+        virtual size_t write(uint8_t)                            = 0;
+        virtual size_t write(const char* str)                    = 0;
+        virtual size_t write(const uint8_t* buffer, size_t size) = 0;
+        virtual size_t write(const char* buffer, size_t size)    = 0;
+
+        virtual size_t print(const __FlashStringHelper* helper)    = 0;
+        virtual size_t print(const String& str)                    = 0;
+        virtual size_t print(const char* str)                      = 0;
+        virtual size_t print(char v)                               = 0;
+        virtual size_t print(unsigned char v, int base = DEC)      = 0;
+        virtual size_t print(int v, int base = DEC)                = 0;
+        virtual size_t print(unsigned int v, int base = DEC)       = 0;
+        virtual size_t print(long v, int base = DEC)               = 0;
+        virtual size_t print(unsigned long v, int base = DEC)      = 0;
+        virtual size_t print(long long v, int base = DEC)          = 0;
+        virtual size_t print(unsigned long long v, int base = DEC) = 0;
+        virtual size_t print(double v, int base = 2)               = 0;
+        virtual size_t print(const Printable& printable)           = 0;
+
+        virtual size_t println(const __FlashStringHelper* helper)    = 0;
+        virtual size_t println(const String& str)                    = 0;
+        virtual size_t println(const char* str)                      = 0;
+        virtual size_t println(char v)                               = 0;
+        virtual size_t println(unsigned char v, int base = DEC)      = 0;
+        virtual size_t println(int v, int base = DEC)                = 0;
+        virtual size_t println(unsigned int v, int base = DEC)       = 0;
+        virtual size_t println(long v, int base = DEC)               = 0;
+        virtual size_t println(unsigned long v, int base = DEC)      = 0;
+        virtual size_t println(long long v, int base = DEC)          = 0;
+        virtual size_t println(unsigned long long v, int base = DEC) = 0;
+        virtual size_t println(double v, int base = 2)               = 0;
+        virtual size_t println(const Printable& printable)           = 0;
 };
 
 template <class C>
@@ -85,11 +116,6 @@ class BT_Wrapper : public BT_Base
             return m_impl->read();
         };
 
-        virtual size_t write(uint8_t v)
-        {
-            return m_impl->write(v);
-        };
-
         virtual void flush()
         {
             m_impl->flush();
@@ -110,9 +136,155 @@ class BT_Wrapper : public BT_Base
             m_impl->setTimeout(timeout);
         };
 
-        using Print::print;
-        using Print::println;
-        using Print::write;
+        virtual size_t write(uint8_t v)
+        {
+            return m_impl->write(v);
+        };
+
+        virtual size_t write(const char* str)
+        {
+            return this->m_impl->write(str);
+        };
+
+        virtual size_t write(const uint8_t* buffer, size_t size)
+        {
+            return this->m_impl->write(buffer, size);
+        };
+
+        virtual size_t write(const char* buffer, size_t size)
+        {
+            return this->m_impl->write(buffer, size);
+        };
+
+        virtual size_t print(const __FlashStringHelper* helper)
+        {
+            return this->m_impl->print(helper);
+        };
+
+        virtual size_t print(const String& str)
+        {
+            return this->m_impl->print(str);
+        };
+
+        virtual size_t print(const char* str)
+        {
+            return this->m_impl->print(str);
+        };
+
+        virtual size_t print(char c)
+        {
+            return this->m_impl->print(c);
+        };
+
+        virtual size_t print(unsigned char v, int base = DEC)
+        {
+            return this->m_impl->print(v, base);
+        };
+
+        virtual size_t print(int v, int base = DEC)
+        {
+            return this->m_impl->print(v, base);
+        };
+
+        virtual size_t print(unsigned int v, int base = DEC)
+        {
+            return this->m_impl->print(v, base);
+        };
+
+        virtual size_t print(long v, int base = DEC)
+        {
+            return this->m_impl->print(v, base);
+        };
+
+        virtual size_t print(unsigned long v, int base = DEC)
+        {
+            return this->m_impl->print(v, base);
+        };
+
+        virtual size_t print(long long v, int base = DEC)
+        {
+            return this->m_impl->print(v, base);
+        };
+
+        virtual size_t print(unsigned long long v, int base = DEC)
+        {
+            return this->m_impl->print(v, base);
+        };
+
+        virtual size_t print(double v, int base = 2)
+        {
+            return this->m_impl->print(v, base);
+        };
+
+        virtual size_t print(const Printable& printable)
+        {
+            return this->m_impl->print(printable);
+        };
+
+        virtual size_t println(const __FlashStringHelper* helper)
+        {
+            return this->m_impl->println(helper);
+        };
+
+        virtual size_t println(const String& str)
+        {
+            return this->m_impl->println(str);
+        };
+
+        virtual size_t println(const char* str)
+        {
+            return this->m_impl->println(str);
+        };
+
+        virtual size_t println(char c)
+        {
+            return this->m_impl->println(c);
+        };
+
+        virtual size_t println(unsigned char v, int base = DEC)
+        {
+            return this->m_impl->println(v, base);
+        };
+
+        virtual size_t println(int v, int base = DEC)
+        {
+            return this->m_impl->println(v, base);
+        };
+
+        virtual size_t println(unsigned int v, int base = DEC)
+        {
+            return this->m_impl->println(v, base);
+        };
+
+        virtual size_t println(long v, int base = DEC)
+        {
+            return this->m_impl->println(v, base);
+        };
+
+        virtual size_t println(unsigned long v, int base = DEC)
+        {
+            return this->m_impl->println(v, base);
+        };
+
+        virtual size_t println(long long v, int base = DEC)
+        {
+            return this->m_impl->println(v, base);
+        };
+
+        virtual size_t println(unsigned long long v, int base = DEC)
+        {
+            return this->m_impl->println(v, base);
+        };
+
+        virtual size_t println(double v, int base = 2)
+        {
+            return this->m_impl->println(v, base);
+        };
+
+        virtual size_t println(const Printable& printable)
+        {
+            return this->m_impl->println(printable);
+        };
 };
 
 #ifdef SoftwareSerial_h
