@@ -55,6 +55,7 @@ class BT_Base : public Stream
         virtual size_t print(double v, int base = 2)               = 0;
         virtual size_t print(const Printable& printable)           = 0;
 
+        virtual size_t println(void)                                 = 0;
         virtual size_t println(const __FlashStringHelper* helper)    = 0;
         virtual size_t println(const String& str)                    = 0;
         virtual size_t println(const char* str)                      = 0;
@@ -219,6 +220,11 @@ class BT_Wrapper : public BT_Base
         virtual size_t print(const Printable& printable)
         {
             return this->m_impl->print(printable);
+        };
+
+        virtual size_t println(void)
+        {
+            return this->m_impl->println();
         };
 
         virtual size_t println(const __FlashStringHelper* helper)
