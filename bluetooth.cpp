@@ -173,12 +173,18 @@ bool Bluetooth::isConnected()
     return (digitalRead(this->state_pin) ? true : false);
 };
 
-bool Bluetooth::waitForConnection(unsigned long timeout)
+/**
+ * Waits for connection for `timeout` ms.
+ * Will wait forever if `timeout` is negative.
+ *
+ * Will return `true` if theres a connection.
+ */
+bool Bluetooth::waitForConnection(long timeout)
 {
     bool connected               = false;
     const unsigned long end_time = millis() + timeout;
 
-    while (millis() < end_time && !(connected = bt->isConnected()))
+    while ((timeout < 0 || millis() < end_time) && !(connected = bt->isConnected()))
         continue;
 
     return connected;
