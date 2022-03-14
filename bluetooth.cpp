@@ -184,7 +184,7 @@ bool Bluetooth::waitForConnection(long timeout)
     bool connected               = false;
     const unsigned long end_time = millis() + timeout;
 
-    while ((timeout < 0 || millis() < end_time) && !(connected = bt->isConnected()))
+    while ((timeout < 0 || millis() < end_time) && !(connected = this->isConnected()))
         continue;
 
     return connected;
