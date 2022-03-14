@@ -173,6 +173,17 @@ bool Bluetooth::isConnected()
     return (digitalRead(this->state_pin) ? true : false);
 };
 
+bool Bluetooth::waitForConnection(unsigned long timeout)
+{
+    bool connected               = false;
+    const unsigned long end_time = millis() + timeout;
+
+    while (millis() < end_time && !(connected = bt->isConnected()))
+        continue;
+
+    return connected;
+}
+
 void Bluetooth::printClientMAC(bool new_line)
 {
     for (int i = 0; i < 5; i++) {
