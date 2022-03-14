@@ -315,7 +315,7 @@ class Bluetooth : public SoftwareSerial
         unsigned long findBaud();
 
         bool isConnected();
-        bool waitForConnection(int timeout);
+        bool waitForConnection(long timeout);
         void printClientMAC(bool new_line = false);
         bool handlNewConnection();
 
