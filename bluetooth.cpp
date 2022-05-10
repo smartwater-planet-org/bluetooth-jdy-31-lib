@@ -179,12 +179,12 @@ bool Bluetooth::isConnected()
  *
  * Will return `true` if theres a connection.
  */
-bool Bluetooth::waitForConnection(long timeout)
+bool Bluetooth::waitForConnection(unsigned long timeout)
 {
-    bool connected               = false;
-    const unsigned long end_time = millis() + timeout;
+    bool connected                = false;
+    const unsigned long init_time = millis();
 
-    while ((timeout < 0 || millis() < end_time) && !(connected = this->isConnected()))
+    while ((timeout < 0 || millis() - init_time <= timeout) && !(connected = this->isConnected()))
         continue;
 
     return connected;
