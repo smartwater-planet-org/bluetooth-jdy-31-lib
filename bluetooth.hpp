@@ -315,7 +315,7 @@ class Bluetooth : public SoftwareSerial
         unsigned long findBaud();
 
         bool isConnected();
-        bool waitForConnection(long timeout);
+        bool waitForConnection(unsigned long timeout);
         void printClientMAC(bool new_line = false);
         bool handlNewConnection();
 
@@ -363,7 +363,7 @@ class Bluetooth : public Stream
         unsigned long findBaud();
 
         bool isConnected();
-        bool waitForConnection(long timeout);
+        bool waitForConnection(unsigned long timeout);
         void printClientMAC(bool new_line = false);
         bool handlNewConnection();
 
