@@ -103,24 +103,40 @@ void Bluetooth::powerOff()
 
 void Bluetooth::setBaud(long baud, uint32_t stop_bits, uint32_t parity)
 {
+    static const long rates[] = { 9600, 19200, 38400, 57600, 115200, 128000 };
+
+    size_t baud_index = -1;
+
+    for (size_t i = 0; i < (sizeof(rates) / sizeof(long)); i++) {
+        if (rates[i] == baud) {
+            baud_index = i;
+            break;
+        }
+    }
+
+    // Baud rate not found
+    if (baud_index == -1)
+        return;
+
     this->setCmdPin(HIGH);
 
-    this->write("AT+UART=");
-    this->print(baud);
-    this->print(",");
-    this->print(stop_bits);
-    this->print(",");
-    this->print(parity);
-
+    this->write("AT+BAUD");
+    this->print(baud_index + 4);
     this->write("\r\n");
+    delay(100);
 
     size_t recvd  = this->readBytes(BUFFER, BUFFER_SIZE);
     BUFFER[recvd] = 0;
-    Serial.print("Set baud response: ");
-    Serial.println(BUFFER);
+
+    this->setCmdPin(LOW);
+
+    // Failed to set baud rate
+    if (recvd > 0 && strcmp(BUFFER, OK_RESPONSE) == 0)
+        return;
 
 
-    digitalWrite(this->cmd_pin, LOW);
+    this->reset();
+    this->end();
     this->begin(baud);
     delay(1000);
 };
@@ -133,7 +149,7 @@ void Bluetooth::setBaud(long baud)
 unsigned long Bluetooth::findBaud()
 {
 
-    static const long rates[] = { 4800, 9600, 19200, 38400, 57600, 115200, 128000 };
+    static const long rates[] = { 9600, 19200, 38400, 57600, 115200, 128000 };
 
     int numRates = sizeof(rates) / sizeof(long);
     int response = false;
