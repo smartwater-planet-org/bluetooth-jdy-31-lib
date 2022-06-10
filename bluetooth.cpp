@@ -160,10 +160,8 @@ unsigned long Bluetooth::findBaud()
     for (int rn = numRates - 1; rn >= 0; rn--) {
 
         const long baud = rates[rn];
-
         this->begin(baud);
         this->setTimeout(100);
-        this->flush();
 
         /**
          * From the specs, the jdy-31 has no "AT" command.
