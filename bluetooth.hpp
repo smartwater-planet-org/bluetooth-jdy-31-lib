@@ -302,10 +302,11 @@ class Bluetooth : public SoftwareSerial
         int cmd_pin;
         int state_pin;
         int power_pin;
+        bool inverted_power_pin;
 
         uint8_t client_mac[6] = { 0 };
 
-        Bluetooth(int rx, int tx, int cmd_pin, int state_pin, int power_pin = -1);
+        Bluetooth(int rx, int tx, int cmd_pin, int state_pin, int power_pin = -1, bool invert_power_pin = false);
 
         void powerOn();
         void powerOff();
@@ -350,10 +351,12 @@ class Bluetooth : public Stream
         int cmd_pin;
         int state_pin;
         int power_pin;
+        bool inverted_power_pin;
 
         uint8_t client_mac[6] = { 0 };
 
-        Bluetooth(Uart* serial, int cmd_pin, int state_pin, int power_pin = -1);
+        Bluetooth(Uart* serial, int cmd_pin, int state_pin, int power_pin = -1, bool invert_power_pin = false);
+
 
         void powerOn();
         void powerOff();

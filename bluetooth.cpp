@@ -42,13 +42,15 @@ uint8_t parse_hex_nibble(char hex)
  *               The implementation of this pin is most probably not built in.
  */
 #ifdef SoftwareSerial_h
-Bluetooth::Bluetooth(int rx, int tx, int cmd_pin, int state_pin, int power_pin) : SoftwareSerial(rx, tx)
+Bluetooth::Bluetooth(int rx, int tx, int cmd_pin, int state_pin, int power_pin, bool inverted_power_pin)
+    : SoftwareSerial(rx, tx)
 {
-    this->rx        = rx;
-    this->tx        = tx;
-    this->cmd_pin   = cmd_pin;
-    this->state_pin = state_pin;
-    this->power_pin = power_pin;
+    this->rx                 = rx;
+    this->tx                 = tx;
+    this->cmd_pin            = cmd_pin;
+    this->state_pin          = state_pin;
+    this->power_pin          = power_pin;
+    this->inverted_power_pin = inverted_power_pin;
 
 
     pinMode(cmd_pin, OUTPUT);
@@ -60,15 +62,15 @@ Bluetooth::Bluetooth(int rx, int tx, int cmd_pin, int state_pin, int power_pin) 
 #endif
 
 #ifndef SoftwareSerial_h
-Bluetooth::Bluetooth(Uart* serial, int cmd_pin, int state_pin, int power_pin) : Stream()
+Bluetooth::Bluetooth(Uart* serial, int cmd_pin, int state_pin, int power_pin, bool inverted_power_pin) : Stream()
 {
-    this->serial    = serial;
-    this->rx        = rx;
-    this->tx        = tx;
-    this->cmd_pin   = cmd_pin;
-    this->state_pin = state_pin;
-    this->power_pin = power_pin;
-
+    this->serial             = serial;
+    this->rx                 = rx;
+    this->tx                 = tx;
+    this->cmd_pin            = cmd_pin;
+    this->state_pin          = state_pin;
+    this->power_pin          = power_pin;
+    this->inverted_power_pin = inverted_power_pin;
 
     pinMode(cmd_pin, OUTPUT);
     pinMode(state_pin, INPUT_PULLUP);
