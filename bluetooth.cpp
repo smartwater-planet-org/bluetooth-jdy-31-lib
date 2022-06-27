@@ -256,14 +256,16 @@ int Bluetooth::readLine(char* buffer, int length)
  */
 void Bluetooth::setCmdPin(int state)
 {
-    digitalWrite(this->cmd_pin, state);
+    if (this->cmd_pin >= 0) {
+        digitalWrite(this->cmd_pin, state);
 
-    /**
-     * Wait an arbitrary time to entry and exit command mode.
-     * There is no specs on this time,
-     * but it appears to depend on baud rate, with/ >100ms required at 9600 baud.
-     */
-    delay(150);
+        /**
+         * Wait an arbitrary time to entry and exit command mode.
+         * There is no specs on this time,
+         * but it appears to depend on baud rate, with/ >100ms required at 9600 baud.
+         */
+        delay(150);
+    }
 }
 
 /**
