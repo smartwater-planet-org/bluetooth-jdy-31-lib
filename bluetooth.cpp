@@ -85,7 +85,7 @@ Bluetooth::Bluetooth(Uart* serial, int cmd_pin, int state_pin, int power_pin, bo
 void Bluetooth::powerOn()
 {
     if (this->power_pin >= 0) {
-        digitalWrite(this->power_pin, HIGH);
+        digitalWrite(this->power_pin, inverted_power_pin ? LOW : HIGH);
         delay(500);
     }
 }
@@ -96,7 +96,7 @@ void Bluetooth::powerOn()
 void Bluetooth::powerOff()
 {
     if (this->power_pin >= 0)
-        digitalWrite(this->power_pin, LOW);
+        digitalWrite(this->power_pin, inverted_power_pin ? HIGH : LOW);
 }
 
 void Bluetooth::setBaud(long baud, uint32_t stop_bits, uint32_t parity)
