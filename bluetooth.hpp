@@ -297,8 +297,6 @@ class BT_Wrapper : public BT_Base
 class Bluetooth : public SoftwareSerial
 {
     public:
-        int rx;
-        int tx;
         int cmd_pin;
         int state_pin;
         int power_pin;
@@ -346,8 +344,6 @@ class Bluetooth : public Stream
 {
     public:
         Uart* serial;
-        int rx;
-        int tx;
         int cmd_pin;
         int state_pin;
         int power_pin;
