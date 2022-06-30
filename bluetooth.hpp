@@ -297,15 +297,14 @@ class BT_Wrapper : public BT_Base
 class Bluetooth : public SoftwareSerial
 {
     public:
-        int rx;
-        int tx;
         int cmd_pin;
         int state_pin;
         int power_pin;
+        bool inverted_power_pin;
 
         uint8_t client_mac[6] = { 0 };
 
-        Bluetooth(int rx, int tx, int cmd_pin, int state_pin, int power_pin = -1);
+        Bluetooth(int rx, int tx, int cmd_pin, int state_pin, int power_pin = -1, bool invert_power_pin = false);
 
         void powerOn();
         void powerOff();
@@ -345,15 +344,15 @@ class Bluetooth : public Stream
 {
     public:
         Uart* serial;
-        int rx;
-        int tx;
         int cmd_pin;
         int state_pin;
         int power_pin;
+        bool inverted_power_pin;
 
         uint8_t client_mac[6] = { 0 };
 
-        Bluetooth(Uart* serial, int cmd_pin, int state_pin, int power_pin = -1);
+        Bluetooth(Uart* serial, int cmd_pin, int state_pin, int power_pin = -1, bool invert_power_pin = false);
+
 
         void powerOn();
         void powerOff();
