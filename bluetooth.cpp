@@ -42,13 +42,13 @@ uint8_t parse_hex_nibble(char hex)
  *               The implementation of this pin is most probably not built in.
  */
 #ifdef SoftwareSerial_h
-Bluetooth::Bluetooth(int rx, int tx, int cmd_pin, int state_pin, int power_pin) : SoftwareSerial(rx, tx)
+Bluetooth::Bluetooth(int rx, int tx, int cmd_pin, int state_pin, int power_pin, bool inverted_power_pin)
+    : SoftwareSerial(rx, tx)
 {
-    this->rx        = rx;
-    this->tx        = tx;
-    this->cmd_pin   = cmd_pin;
-    this->state_pin = state_pin;
-    this->power_pin = power_pin;
+    this->cmd_pin            = cmd_pin;
+    this->state_pin          = state_pin;
+    this->power_pin          = power_pin;
+    this->inverted_power_pin = inverted_power_pin;
 
 
     pinMode(cmd_pin, OUTPUT);
@@ -60,15 +60,13 @@ Bluetooth::Bluetooth(int rx, int tx, int cmd_pin, int state_pin, int power_pin) 
 #endif
 
 #ifndef SoftwareSerial_h
-Bluetooth::Bluetooth(Uart* serial, int cmd_pin, int state_pin, int power_pin) : Stream()
+Bluetooth::Bluetooth(Uart* serial, int cmd_pin, int state_pin, int power_pin, bool inverted_power_pin) : Stream()
 {
-    this->serial    = serial;
-    this->rx        = rx;
-    this->tx        = tx;
-    this->cmd_pin   = cmd_pin;
-    this->state_pin = state_pin;
-    this->power_pin = power_pin;
-
+    this->serial             = serial;
+    this->cmd_pin            = cmd_pin;
+    this->state_pin          = state_pin;
+    this->power_pin          = power_pin;
+    this->inverted_power_pin = inverted_power_pin;
 
     pinMode(cmd_pin, OUTPUT);
     pinMode(state_pin, INPUT_PULLUP);
@@ -87,7 +85,7 @@ Bluetooth::Bluetooth(Uart* serial, int cmd_pin, int state_pin, int power_pin) : 
 void Bluetooth::powerOn()
 {
     if (this->power_pin >= 0) {
-        digitalWrite(this->power_pin, HIGH);
+        digitalWrite(this->power_pin, inverted_power_pin ? LOW : HIGH);
         delay(500);
     }
 }
@@ -98,7 +96,7 @@ void Bluetooth::powerOn()
 void Bluetooth::powerOff()
 {
     if (this->power_pin >= 0)
-        digitalWrite(this->power_pin, LOW);
+        digitalWrite(this->power_pin, inverted_power_pin ? HIGH : LOW);
 }
 
 void Bluetooth::setBaud(long baud, uint32_t stop_bits, uint32_t parity)
@@ -258,14 +256,16 @@ int Bluetooth::readLine(char* buffer, int length)
  */
 void Bluetooth::setCmdPin(int state)
 {
-    digitalWrite(this->cmd_pin, state);
+    if (this->cmd_pin >= 0) {
+        digitalWrite(this->cmd_pin, state);
 
-    /**
-     * Wait an arbitrary time to entry and exit command mode.
-     * There is no specs on this time,
-     * but it appears to depend on baud rate, with/ >100ms required at 9600 baud.
-     */
-    delay(150);
+        /**
+         * Wait an arbitrary time to entry and exit command mode.
+         * There is no specs on this time,
+         * but it appears to depend on baud rate, with/ >100ms required at 9600 baud.
+         */
+        delay(150);
+    }
 }
 
 /**
