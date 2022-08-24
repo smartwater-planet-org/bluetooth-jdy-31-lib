@@ -342,16 +342,29 @@ class Bluetooth : public SoftwareSerial
 #ifndef SoftwareSerial_h
 class Bluetooth : public Stream
 {
+    private:
+        bool _is_connected  = false;
+        bool _is_connecting = false;
+
+        void setCmdPin(int state);
+        void handleConnectionURC(const char* str);
+
     public:
         Uart* serial;
         int cmd_pin;
         int state_pin;
         int power_pin;
         bool inverted_power_pin;
+        bool listen_for_urc;
 
         uint8_t client_mac[6] = { 0 };
 
-        Bluetooth(Uart* serial, int cmd_pin, int state_pin, int power_pin = -1, bool invert_power_pin = false);
+        Bluetooth(Uart* serial,
+                  int cmd_pin,
+                  int state_pin,
+                  int power_pin         = -1,
+                  bool invert_power_pin = false,
+                  bool listen_for_urc   = false);
 
 
         void powerOn();
@@ -361,10 +374,9 @@ class Bluetooth : public Stream
         void setBaud(long baud);
         unsigned long findBaud();
 
+        size_t poll();
         bool isConnected();
         bool waitForConnection(unsigned long timeout);
-        void printClientMAC(bool new_line = false);
-        bool handlNewConnection();
 
         int readLine(char* buffer, int length);
         void sendCommand(char* cmd, uint32_t timeout);
@@ -407,10 +419,6 @@ class Bluetooth : public Stream
         using Print::print;
         using Print::println;
         using Print::write;
-
-
-    private:
-        void setCmdPin(int state);
 };
 #endif
 
