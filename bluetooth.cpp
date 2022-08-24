@@ -60,14 +60,15 @@ Bluetooth::Bluetooth(int rx, int tx, int cmd_pin, int state_pin, int power_pin, 
 #endif
 
 #ifndef SoftwareSerial_h
-Bluetooth::Bluetooth(Uart* serial, int cmd_pin, int state_pin, int power_pin, bool inverted_power_pin) : Stream()
+Bluetooth::Bluetooth(Uart* serial,
+                     int cmd_pin,
+                     int state_pin,
+                     int power_pin,
+                     bool inverted_power_pin,
+                     bool listen_for_urc)
+    : serial(serial), cmd_pin(cmd_pin), state_pin(state_pin), power_pin(power_pin),
+      inverted_power_pin(inverted_power_pin), listen_for_urc(listen_for_urc), Stream()
 {
-    this->serial             = serial;
-    this->cmd_pin            = cmd_pin;
-    this->state_pin          = state_pin;
-    this->power_pin          = power_pin;
-    this->inverted_power_pin = inverted_power_pin;
-
     pinMode(cmd_pin, OUTPUT);
     pinMode(state_pin, INPUT_PULLUP);
 
@@ -182,8 +183,33 @@ unsigned long Bluetooth::findBaud()
 
 bool Bluetooth::isConnected()
 {
-    return (digitalRead(this->state_pin) ? true : false);
-};
+    return this->_is_connected || (digitalRead(this->state_pin) ? true : false);
+}
+
+size_t Bluetooth::poll()
+{
+    size_t recvd = this->readBytesUntil('\n', BUFFER, BUFFER_SIZE);
+
+    if (recvd > 0) {
+        BUFFER[recvd] = 0; // set end of string
+        handleConnectionURC(BUFFER);
+    }
+
+    return recvd;
+}
+
+void Bluetooth::handleConnectionURC(const char* str)
+{
+    if (strstr(str, "+CONNECTING") != NULL) {
+        this->_is_connecting = true;
+    } else if (strstr(str, "CONNECTED") != NULL && this->_is_connecting) {
+        this->_is_connecting = false;
+        this->_is_connected  = true;
+    } else if (strstr(str, "+DISC:SUCCESS") != NULL) {
+        this->_is_connecting = false;
+        this->_is_connected  = false;
+    }
+}
 
 /**
  * Waits for connection for `timeout` ms.
@@ -196,58 +222,17 @@ bool Bluetooth::waitForConnection(unsigned long timeout)
     bool connected                = false;
     const unsigned long init_time = millis();
 
-    while ((timeout < 0 || millis() - init_time <= timeout) && !(connected = this->isConnected()))
-        continue;
+    while ((timeout < 0 || millis() - init_time <= timeout) && !connected) {
+        this->poll();
+        connected = this->isConnected();
+    }
 
     return connected;
 }
 
-void Bluetooth::printClientMAC(bool new_line)
-{
-    for (int i = 0; i < 5; i++) {
-        Serial.print(this->client_mac[i], HEX);
-        Serial.print(":");
-    }
-    Serial.print(this->client_mac[5], HEX);
-
-    if (new_line)
-        Serial.print('\n');
-}
-
-bool Bluetooth::handlNewConnection()
-{
-    size_t recvd = 0;
-
-    recvd = this->readLine(BUFFER, BUFFER_SIZE);
-
-    if (recvd < 30)
-        return false;
-
-    /**
-     * Expects "+CONNECTING<<xx:xx:xx:xx:xx:xx"
-     *          ^            ^
-     *          0            13
-     */
-    uint8_t byte_index = 0;
-    for (int i = 13; i < 30; i += 3) {
-        this->client_mac[byte_index] = parse_hex_nibble(BUFFER[i]) << 4;
-        this->client_mac[byte_index] |= parse_hex_nibble(BUFFER[i + 1]);
-
-        byte_index++;
-    }
-
-    // Flush "CONNECTED" response
-    recvd = this->readLine(BUFFER, BUFFER_SIZE);
-
-    return true;
-};
-
 int Bluetooth::readLine(char* buffer, int length)
 {
     int recvd = this->readBytesUntil('\n', buffer, length);
-    if (recvd < length)
-        buffer[recvd] = 0;
-
     return recvd;
 };
 
@@ -386,7 +371,10 @@ int Bluetooth::read()
 
 size_t Bluetooth::readBytesUntil(char terminator, char* buffer, size_t length)
 {
-    return this->serial->readBytesUntil(terminator, buffer, length);
+    int recv = this->serial->readBytesUntil(terminator, buffer, length);
+    this->handleConnectionURC(buffer);
+
+    return recv;
 };
 
 void Bluetooth::begin(unsigned long baudRate)
