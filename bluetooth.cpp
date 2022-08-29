@@ -188,14 +188,7 @@ bool Bluetooth::isConnected()
 
 size_t Bluetooth::poll()
 {
-    size_t recvd = this->readBytesUntil('\n', BUFFER, BUFFER_SIZE);
-
-    if (recvd > 0) {
-        BUFFER[recvd] = 0; // set end of string
-        handleConnectionURC(BUFFER);
-    }
-
-    return recvd;
+    return this->readLine(BUFFER, BUFFER_SIZE);
 }
 
 void Bluetooth::handleConnectionURC(const char* str)
@@ -223,7 +216,7 @@ bool Bluetooth::waitForConnection(unsigned long timeout)
     const unsigned long init_time = millis();
 
     while ((timeout < 0 || millis() - init_time <= timeout) && !connected) {
-        this->poll();
+        this->readLine(BUFFER, BUFFER_SIZE);
         connected = this->isConnected();
     }
 
@@ -232,8 +225,7 @@ bool Bluetooth::waitForConnection(unsigned long timeout)
 
 int Bluetooth::readLine(char* buffer, int length)
 {
-    int recvd = this->readBytesUntil('\n', buffer, length);
-    return recvd;
+    return this->serial->readBytesUntil('\n', buffer, length);
 };
 
 /**
@@ -350,6 +342,8 @@ void Bluetooth::resetFactory()
 void Bluetooth::disconnect()
 {
     this->sendCommand("AT+DISC", DEFAULT_TIMEOUT);
+    this->_is_connected  = false;
+    this->_is_connecting = false;
     this->readLine(BUFFER, BUFFER_SIZE);
 }
 
@@ -371,9 +365,8 @@ int Bluetooth::read()
 
 size_t Bluetooth::readBytesUntil(char terminator, char* buffer, size_t length)
 {
-    int recv = this->serial->readBytesUntil(terminator, buffer, length);
+    size_t recv = this->serial->readBytesUntil(terminator, buffer, length);
     this->handleConnectionURC(buffer);
-
     return recv;
 };
 
@@ -414,7 +407,9 @@ void Bluetooth::setTimeout(long timeout)
 
 size_t Bluetooth::readBytes(char* buffer, size_t length)
 {
-    return this->serial->readBytes(buffer, length);
+    size_t recv = this->serial->readBytes(buffer, length);
+    this->handleConnectionURC(buffer);
+    return recv;
 }
 
 
