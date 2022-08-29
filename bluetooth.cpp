@@ -186,11 +186,6 @@ bool Bluetooth::isConnected()
     return this->_is_connected || (digitalRead(this->state_pin) ? true : false);
 }
 
-size_t Bluetooth::poll()
-{
-    return this->readLine(BUFFER, BUFFER_SIZE);
-}
-
 void Bluetooth::handleConnectionURC(const char* str)
 {
     if (strstr(str, "+CONNECTING") != NULL) {
@@ -226,7 +221,7 @@ bool Bluetooth::waitForConnection(unsigned long timeout)
 int Bluetooth::readLine(char* buffer, int length)
 {
     return this->readBytesUntil('\n', buffer, length);
-};
+}
 
 /**
  * Sets command pin state and waits to enter/exit command mode
