@@ -225,7 +225,7 @@ bool Bluetooth::waitForConnection(unsigned long timeout)
 
 int Bluetooth::readLine(char* buffer, int length)
 {
-    return this->serial->readBytesUntil('\n', buffer, length);
+    return this->readBytesUntil('\n', buffer, length);
 };
 
 /**
