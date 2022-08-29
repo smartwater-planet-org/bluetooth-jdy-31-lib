@@ -313,8 +313,10 @@ class Bluetooth : public SoftwareSerial
         void setBaud(long baud);
         unsigned long findBaud();
 
+        size_t poll();
         bool isConnected();
         bool waitForConnection(unsigned long timeout);
+
         void printClientMAC(bool new_line = false);
         bool handlNewConnection();
 
