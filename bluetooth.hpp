@@ -358,6 +358,7 @@ class Bluetooth : public Stream
         int power_pin;
         bool inverted_power_pin;
         bool listen_for_urc;
+        bool using_le_device;
 
         uint8_t client_mac[6] = { 0 };
 
@@ -366,7 +367,8 @@ class Bluetooth : public Stream
                   int state_pin,
                   int power_pin         = -1,
                   bool invert_power_pin = false,
-                  bool listen_for_urc   = false);
+                  bool listen_for_urc   = false,
+                  bool using_le_device  = false);
 
 
         void powerOn();
@@ -408,10 +410,7 @@ class Bluetooth : public Stream
         size_t readBytes(char* buffer, size_t length);
         void setTimeout(long timeout);
 
-        size_t write(uint8_t value)
-        {
-            return this->serial->write(value);
-        }
+        size_t write(const uint8_t value) override;
 
         size_t write(char* value, size_t length)
         {

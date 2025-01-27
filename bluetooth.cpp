@@ -7,6 +7,7 @@
 #if __has_include(<SoftwareSerial.h>)
 #include <SoftwareSerial.h>
 #endif
+#include "bucket.hpp"
 
 #define OK_RESPONSE     "+OK"
 #define DEFAULT_TIMEOUT 5000
@@ -65,9 +66,10 @@ Bluetooth::Bluetooth(Uart* serial,
                      int state_pin,
                      int power_pin,
                      bool inverted_power_pin,
-                     bool listen_for_urc)
+                     bool listen_for_urc,
+                     bool using_le_device)
     : serial(serial), cmd_pin(cmd_pin), state_pin(state_pin), power_pin(power_pin),
-      inverted_power_pin(inverted_power_pin), listen_for_urc(listen_for_urc), Stream()
+      inverted_power_pin(inverted_power_pin), listen_for_urc(listen_for_urc), using_le_device(using_le_device), Stream()
 {
     pinMode(cmd_pin, OUTPUT);
     pinMode(state_pin, INPUT_PULLUP);
@@ -403,6 +405,20 @@ int Bluetooth::peek()
 void Bluetooth::setTimeout(long timeout)
 {
     this->serial->setTimeout(timeout);
+}
+
+#define BUCKET_SIZE            50
+#define BUCKET_TOKEN_REFILL_MS 1
+Bucket bucket(BUCKET_SIZE, BUCKET_TOKEN_REFILL_MS);
+
+size_t Bluetooth::write(const uint8_t value)
+{
+    // For BLE Devices we have observed a bug where the device looses bytes if they are send too fast.
+    // This is we have designid this simple bucket system to limit the speed of bytes send to the device.
+    if (using_le_device) {
+        bucket.request_token();
+    }
+    return this->serial->write(value);
 }
 
 size_t Bluetooth::readBytes(char* buffer, size_t length)
