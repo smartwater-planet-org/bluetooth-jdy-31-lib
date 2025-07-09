@@ -407,9 +407,13 @@ void Bluetooth::setTimeout(long timeout)
     this->serial->setTimeout(timeout);
 }
 
-#define BUCKET_SIZE            50
-#define BUCKET_TOKEN_REFILL_MS 1
-Bucket bucket(BUCKET_SIZE, BUCKET_TOKEN_REFILL_MS);
+#ifndef BLE_BUCKET_SIZE
+#define BLE_BUCKET_SIZE 20
+#endif
+#ifndef BLE_BUCKET_TOKEN_REFILL_MS
+#define BLE_BUCKET_TOKEN_REFILL_MS 1
+#endif
+Bucket bucket(BLE_BUCKET_SIZE, BLE_BUCKET_TOKEN_REFILL_MS);
 
 size_t Bluetooth::write(const uint8_t value)
 {
